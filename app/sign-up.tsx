@@ -1,24 +1,32 @@
 import React, { useState } from 'react';
-import { router } from 'expo-router';
 import { Text, View, TextInput, Button, StyleSheet } from 'react-native';
-
+import { router } from 'expo-router';
 import { useSession } from '@/context/ctx';
 
 export default function SignIn() {
-  const { signIn } = useSession();
+  const { signUp } = useSession();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
 
   const handleSignIn = () => {
     // Call your signIn function with email and password
-    signIn({ email, password });
+    signUp({ name, email, password, passwordConfirmation });
     // Navigate after signing in
     router.replace('/');
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sign In</Text>
+      <Text style={styles.title}>Sign Up</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Name"
+        value={name}
+        onChangeText={setName}
+        autoCapitalize="none"
+      />
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -34,16 +42,22 @@ export default function SignIn() {
         onChangeText={setPassword}
         secureTextEntry
       />
+      <TextInput
+        style={styles.input}
+        placeholder="Password Confirmation"
+        value={passwordConfirmation}
+        onChangeText={setPasswordConfirmation}
+        secureTextEntry
+      />
       <View style={styles.button}>
-        <Button title="Sign In" onPress={handleSignIn} color={styles.button.color} />
+        <Button title="Create an Account" onPress={handleSignIn} color={styles.button.color} />
       </View>
-      <View style={styles.signup}>
-        <Button title="Create an Account" onPress={() => router.push('/sign-up')} color={styles.button.color} />
+      <View style={styles.backToLogin}>
+        <Button title="Back to Login" onPress={() => router.push('/sign-in')} color={styles.backToLogin.color} />
       </View>
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -75,13 +89,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
-  signup: {
+  backToLogin: {
+    marginTop: 12,
     width: '100%',
-    padding: 4,
-    backgroundColor: '#28A745',
-    borderRadius: 8,
-    color: '#fff',
+    color: '#333333',
     fontWeight: 'bold',
-    marginTop: 16,
   }
 });
