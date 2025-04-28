@@ -1,18 +1,27 @@
+import { useEffect, useState } from 'react';
+
 import { Text, View, FlatList, StyleSheet } from 'react-native';
 
 import { Stack } from 'expo-router';
 
 import { useSession } from '@/context/ctx';
 
+import { fetchCategories } from '@/services/api';
+
 export default function Index() {
   const { signOut } = useSession();
+  const [categories, setCategories] = useState([]);
 
-  const categories = [
-    { id: '1', name: 'Technology' },
-    { id: '2', name: 'Health' },
-    { id: '3', name: 'Finance' },
-    { id: '4', name: 'Education' },
-  ];
+  useEffect(() => {
+    fetchCategories()
+      .then((responseData) => {
+        setCategories(responseData.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching categories:', error);
+        signOut();
+      });
+  }, []);
 
   return (
     <>
