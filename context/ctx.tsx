@@ -1,15 +1,19 @@
 import { useContext, createContext, type PropsWithChildren } from 'react';
+
+import { Alert } from 'react-native';
+
+import { login, register } from '@/services/api';
 import { useStorageState } from '@/hooks/useStorageState';
 
 const AuthContext = createContext<{
-    signIn: () => void;
-    signUp: () => void;
+    signIn: (data: Object) => void;
+    signUp: (data: Object) => void;
     signOut: () => void;
     session?: string | null;
     isLoading: boolean;
 }>({
-    signIn: () => null,
-    signUp: () => null,
+    signIn: (data) => null,
+    signUp: (data) => null,
     signOut: () => null,
     session: null,
     isLoading: false,
@@ -33,13 +37,24 @@ export function SessionProvider({ children }: PropsWithChildren) {
     return (
         <AuthContext.Provider
             value={{
-                signIn: () => {
+                signIn: (data) => {
                     // Perform sign-in logic here
-                    setSession('xxx');
+                    login(data)
+                        .then((response) => {
+                            setSession(response); // Save session securely
+                        })
+                        .catch((error) => {
+                            Alert.alert('Error while signing in', error.message);
+                        });
                 },
-                signUp: () => {
-                    // Perform sign-up logic here
-                    setSession('xxx');
+                signUp: (data) => {
+                    register(data)
+                        .then((response) => {
+                            setSession(response);
+                        })
+                        .catch((error) => {
+                            Alert.alert('Error while signing up', error.message);
+                        });
                 },
                 signOut: () => {
                     setSession(null);

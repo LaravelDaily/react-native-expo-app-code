@@ -13,7 +13,7 @@ const api = axios.create({
 // Example API call
 export const fetchCategories = async () => {
     const response = await api.get('/categories');
-    
+
     if (response.status !== 200) {
         throw new Error('Failed to fetch categories');
     }
@@ -60,5 +60,33 @@ export const deleteCategory = async (id: Number) => {
 
     return response.data;
 };
+
+export const login = async (data: any) => {
+    const response = await api.post('/auth/login', {
+        ...data,
+        device_name: 'simple-app'
+    });
+
+    if (response.status !== 200) {
+        throw new Error('Failed to login');
+    }
+
+    return response.data;
+};
+
+export const register = async (data: any) => {
+    const response = await api.post('/auth/register', {
+        ...data,
+        password_confirmation: data.passwordConfirmation,
+        device_name: 'simple-app'
+    });
+
+    if (response.status !== 200) {
+        throw new Error('Failed to register');
+    }
+
+    return response.data;
+}
+
 
 export default api;
