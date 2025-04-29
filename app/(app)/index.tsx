@@ -1,18 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
-import { Text, View, FlatList, StyleSheet } from 'react-native';
+import { Text, View, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 
-import { Stack } from 'expo-router';
+import { Stack, router, useFocusEffect } from 'expo-router';
 
 import { useSession } from '@/context/ctx';
 
-import { fetchCategories } from '@/services/api';
+import { fetchCategories, deleteCategory } from '@/services/api';
+
+import Icon from 'react-native-vector-icons/MaterialIcons';
+
+interface Category {
+  id: string;
+  name: string;
+}
 
 export default function Index() {
   const { signOut } = useSession();
   const [categories, setCategories] = useState([]);
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
     fetchCategories()
       .then((responseData) => {
         setCategories(responseData.data);
@@ -21,7 +28,42 @@ export default function Index() {
         console.error('Error fetching categories:', error);
         signOut();
       });
-  }, []);
+  }, [signOut]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [fetchData])
+  );
+
+  const handleEdit = (category: Category): void => {
+    router.push(`/categories/${category.id}`);
+  };
+
+  const handleCreate = (): void => {
+    router.push('/categories/create');
+  };
+
+  const handleDelete = (category: Category): void => {
+    Alert.alert(
+      'Delete Category',
+      `Are you sure you want to delete "${category.name}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            deleteCategory(category.id)
+            setCategories((prevCategories) =>
+              prevCategories.filter((cat) => cat.id !== category.id)
+            );
+            Alert.alert('Success', 'Category deleted successfully');
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <>
@@ -30,8 +72,24 @@ export default function Index() {
         <FlatList
           data={categories}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <Text style={styles.category}>{item.name}</Text>}
+          renderItem={({ item }) => (
+            <View style={styles.categoryContainer}>
+              <Text style={styles.category}>{item.name}</Text>
+              <View style={styles.actions}>
+                <TouchableOpacity onPress={() => handleDelete(item)}>
+                  <Icon name="delete" size={24} color="#FF0000" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleEdit(item)}>
+                  <Icon name="edit" size={24} color="#007BFF" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         />
+
+        <TouchableOpacity style={styles.floatingButton} onPress={handleCreate}>
+          <Icon name="add" size={28} color="#fff" />
+        </TouchableOpacity>
       </View>
     </>
   );
@@ -41,12 +99,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  category: {
-    fontSize: 16,
+  categoryContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 8,
-    paddingLeft: 16,
+
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
-    width: '100%',
+  },
+  category: {
+    fontSize: 16,
+  },
+  floatingButton: {
+    position: 'absolute',
+    bottom: 32,
+    right: 32,
+    backgroundColor: '#007BFF',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 16, // Add spacing between icons
   },
 });
