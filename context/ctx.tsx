@@ -1,9 +1,9 @@
 import { useContext, createContext, type PropsWithChildren } from 'react';
-
-import { Alert } from 'react-native';
-
-import { login, register } from '@/services/api';
 import { useStorageState } from '@/hooks/useStorageState';
+import { login, register } from '@/services/api';
+import { Alert } from 'react-native';
+import { useRouter } from 'expo-router';
+import { setSession, clearSession } from '@/services/auth';
 
 const AuthContext = createContext<{
     signIn: (data: Object) => void;
@@ -32,16 +32,18 @@ export function useSession() {
 }
 
 export function SessionProvider({ children }: PropsWithChildren) {
-    const [[isLoading, session], setSession] = useStorageState('session');
+    const router = useRouter();
+    const [[isLoading, session], setSessionState] = useStorageState('session');
 
     return (
         <AuthContext.Provider
             value={{
                 signIn: (data) => {
-                    // Perform sign-in logic here
                     login(data)
                         .then((response) => {
+                            setSessionState(response);
                             setSession(response); // Save session securely
+                            router.replace('/');
                         })
                         .catch((error) => {
                             Alert.alert('Error while signing in', error.message);
@@ -50,14 +52,18 @@ export function SessionProvider({ children }: PropsWithChildren) {
                 signUp: (data) => {
                     register(data)
                         .then((response) => {
-                            setSession(response);
+                            setSessionState(response);
+                            setSession(response); // Save session securely
+                            router.replace('/');
                         })
                         .catch((error) => {
                             Alert.alert('Error while signing up', error.message);
                         });
                 },
                 signOut: () => {
-                    setSession(null);
+                    clearSession(); // Clear session securely
+                    setSessionState(null);
+                    router.replace('/sign-in'); // Redirect to login page
                 },
                 session,
                 isLoading,

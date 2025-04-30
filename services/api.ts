@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { getSession, clearSession } from '@/services/auth';
 
-const API_BASE_URL = 'https://ced1-78-58-236-130.ngrok-free.app/api';
+const API_BASE_URL = 'https://37ed-78-58-236-130.ngrok-free.app/api';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -9,6 +10,29 @@ const api = axios.create({
         'Content-Type': 'application/json',
     },
 });
+
+api.interceptors.request.use(
+    async (config) => {
+        const session = await getSession();
+        if (session) {
+            config.headers.Authorization = `Bearer ${session}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            clearSession();
+        }
+        return Promise.reject(error);
+    }
+);
 
 // Example API call
 export const fetchCategories = async () => {
