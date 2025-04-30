@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getSession, clearSession } from '@/services/auth';
+import * as Device from 'expo-device';
 
 const API_BASE_URL = 'https://37ed-78-58-236-130.ngrok-free.app/api';
 
@@ -30,6 +31,12 @@ api.interceptors.response.use(
         if (error.response && error.response.status === 401) {
             clearSession();
         }
+
+        if (error.response.status === 422) {
+            // Return validation errors for further handling
+            return Promise.reject({ validationErrors: error.response.data.errors });
+        }
+        
         return Promise.reject(error);
     }
 );
@@ -88,7 +95,7 @@ export const deleteCategory = async (id: Number) => {
 export const login = async (data: any) => {
     const response = await api.post('/auth/login', {
         ...data,
-        device_name: 'simple-app'
+        device_name: Device.deviceName
     });
 
     if (response.status !== 200) {
@@ -102,7 +109,7 @@ export const register = async (data: any) => {
     const response = await api.post('/auth/register', {
         ...data,
         password_confirmation: data.passwordConfirmation,
-        device_name: 'simple-app'
+        device_name: Device.deviceName
     });
 
     if (response.status !== 200) {

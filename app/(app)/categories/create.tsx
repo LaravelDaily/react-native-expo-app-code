@@ -6,15 +6,21 @@ import { createCategory } from '@/services/api';
 export default function EditCategory() {
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
+    const [validationErrors, setValidationErrors] = useState({});
 
     const handleSave = async () => {
         setLoading(true);
+        setValidationErrors({});
         try {
             await createCategory({ name });
             Alert.alert('Success', 'Category created successfully');
             router.dismissTo('/')
         } catch (error) {
-            Alert.alert('Error', 'Failed to create category');
+            if (error.validationErrors) {
+                setValidationErrors(error.validationErrors);
+            } else {
+                Alert.alert('Error', 'Failed to create category');
+            }
         } finally {
             setLoading(false);
         }
@@ -31,6 +37,7 @@ export default function EditCategory() {
                     onChangeText={setName}
                     placeholder="Category Name"
                 />
+                {validationErrors.name && <Text style={styles.errorText}>{validationErrors.name[0]}</Text>}
                 <View style={styles.button}>
                     <Button title={loading ? 'Saving...' : 'Save'} onPress={handleSave} disabled={loading} color={'#fff'} />
                 </View>

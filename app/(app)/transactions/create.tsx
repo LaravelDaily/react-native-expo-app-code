@@ -14,15 +14,21 @@ export default function CreateCategory() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [transactionDate, setTransactionDate] = useState(new Date());
   const [open, setOpen] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
 
   const handleSave = async () => {
     setLoading(true);
+    setValidationErrors({});
     try {
-      await createTransaction({ amount, category_id: selectedCategory, description: description, transaction_date: transactionDate });
+      await createTransaction({ amount, category_id: selectedCategory, description, transaction_date: transactionDate });
       Alert.alert('Success', 'Transaction created successfully');
       router.dismissTo('/transactions');
     } catch (error) {
-      Alert.alert('Error', 'Failed to create transaction');
+      if (error.validationErrors) {
+        setValidationErrors(error.validationErrors);
+      } else {
+        Alert.alert('Error', 'Failed to create transaction');
+      }
     } finally {
       setLoading(false);
     }
@@ -59,6 +65,7 @@ export default function CreateCategory() {
             keyboardType="numeric"
           />
         </View>
+        {validationErrors.amount && <Text style={styles.errorText}>{validationErrors.amount[0]}</Text>}
         <Text style={styles.label}>Category*</Text>
         <Dropdown
           data={categories.map((category) => ({ label: category.name, value: category.id }))}
@@ -71,6 +78,7 @@ export default function CreateCategory() {
           placeholderStyle={styles.placeholderStyle}
           selectedTextStyle={styles.selectedTextStyle}
         />
+        {validationErrors.category_id && <Text style={styles.errorText}>{validationErrors.category_id[0]}</Text>}
         <Text style={styles.label}>Description*</Text>
         <TextInput
           style={styles.descriptionInput}
@@ -79,6 +87,7 @@ export default function CreateCategory() {
           placeholder="Enter a description"
           multiline
         />
+        {validationErrors.description && <Text style={styles.errorText}>{validationErrors.description[0]}</Text>}
         <Text style={styles.label}>Transaction Date</Text>
         <View style={styles.datePickerButton}>
           <Button
@@ -183,5 +192,9 @@ const styles = StyleSheet.create({
   datePickerButtonText: {
     color: '#000',
     fontSize: 16,
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 8,
   },
 });

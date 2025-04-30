@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { fetchCategoryById, updateCategory } from '@/services/api';
 
 export default function EditCategory() {
+    const router = useRouter();
     const { id } = useLocalSearchParams(); // Get the category ID from the route
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
+    const [validationErrors, setValidationErrors] = useState({});
 
     useEffect(() => {
         fetchCategoryById(id)
@@ -16,12 +18,17 @@ export default function EditCategory() {
 
     const handleSave = async () => {
         setLoading(true);
+        setValidationErrors({});
         try {
             await updateCategory(id, { name });
             Alert.alert('Success', 'Category updated successfully');
-            router.dismissTo('/')
+            router.dismissTo('/');
         } catch (error) {
-            Alert.alert('Error', 'Failed to update category');
+            if (error.validationErrors) {
+                setValidationErrors(error.validationErrors);
+            } else {
+                Alert.alert('Error', 'Failed to update category');
+            }
         } finally {
             setLoading(false);
         }
@@ -38,6 +45,7 @@ export default function EditCategory() {
                     onChangeText={setName}
                     placeholder="Category Name"
                 />
+                {validationErrors.name && <Text style={styles.errorText}>{validationErrors.name[0]}</Text>}
                 <View style={styles.button}>
                     <Button title={loading ? 'Saving...' : 'Save'} onPress={handleSave} disabled={loading} color={'#fff'} />
                 </View>
