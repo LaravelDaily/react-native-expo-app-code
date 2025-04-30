@@ -113,4 +113,54 @@ export const register = async (data: any) => {
 }
 
 
+export const fetchTransactions = async () => {
+    const response = await api.get('/transactions');
+
+    if (response.status !== 200) {
+        throw new Error('Failed to fetch transactions');
+    }
+
+    return response.data;
+}
+
+export const fetchTransactionById = async (id: Number) => {
+    const response = await api.get(`/transactions/${id}`);
+
+    if (response.status !== 200) {
+        throw new Error('Failed to fetch transaction');
+    }
+
+    return response.data;
+}
+
+export const updateTransaction = async (id: Number, data: any) => {
+    const response = await api.put(`/transactions/${id}`, data);
+
+    if (response.status !== 200) {
+        throw new Error('Failed to update transaction');
+    }
+
+    return response.data;
+}
+
+export const deleteTransaction = async (id: Number) => {
+    const response = await api.delete(`/transactions/${id}`);
+
+    if (response.status !== 200) {
+        throw new Error('Failed to delete transaction');
+    }
+
+    return response.data;
+}
+
+export const createTransaction = async (data: any) => {
+    const response = await api.post('/transactions', data);
+
+    if (response.status !== 201) {
+        throw new Error('Failed to create transaction');
+    }
+
+    return response.data;
+}
+
 export default api;
